@@ -1,0 +1,123 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">{{ app_label|capfirst|escape }}</a> &rsaquo;
+     <a href="../">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+     {% trans "Import" %} {{ opts.verbose_name }}
+</div>
+{% endblock %}
+
+{% block content %}
+<h2>XLS Import</h2>
+<form action="." method="post" enctype="multipart/form-data">{% csrf_token %}
+<div>
+{% if import_form.non_field_errors %}
+    <p class="errornote">
+    {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+    </p>
+    {{ import_form.form.non_field_errors }}
+{% endif %}
+
+<div class="form-row">
+    {{ line.errors }}
+    {% for field in import_form %}
+        <div{% if not line.fields|length_is:"1" %} class="field-box"{% endif %}>
+            {% if field.is_checkbox %}
+                {{ field.field }}{{ field.label_tag }}
+            {% else %}
+                {{ field.label_tag }}
+                {% if field.is_readonly %}
+                    <p>{{ field.contents }}</p>
+                {% else %}
+                    {{ field }}
+                {% endif %}
+            {% endif %}
+            {% if field.field.field.help_text %}
+                <p class="help">{{ field.field.field.help_text|safe }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<div class="submit-row">
+    <input type="submit" value="{% trans "upload file" %}" class="default" name="_send_file" />
+</div>
+
+</div>
+</form>
+
+{% if sheet_head %}
+    <h2>{% trans "assign columns" %}</h2>
+    <form action="." method="post">{% csrf_token %}
+        <table>
+            {% for row in sheet_head %}
+                <tr>
+                    {% for cell in row %}
+                        {% if forloop.parentloop.first %}
+                            <th>{{cell.value}}</th>
+                        {% else %}
+                            <td>{{cell.value}}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            {% if column_assign_form.non_field_errors %}
+                <p class="errornote">
+                {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+                </p>
+                {{ column_assign_form.non_field_errors }}
+            {% endif %}
+            <tr>
+                {% for field in column_assign_form %}
+                    <td>
+                        {{ field }}
+                    </td>
+                {% endfor %}
+            </tr>
+        </table>
+        <div class="submit-row">
+            <input type="submit" value="{% trans "assign" %}" class="default" name="_send_assignment" />
+        </div>
+    </form>
+{% endif %}
+
+{% if partial_form %}
+    <h2>{% trans "Fill out the other fields" %}</h2>
+    <form action="." method="post">{% csrf_token %}
+        <div class="submit-row">
+            {{ partial_form.non_field_errors }}
+            {% for field in partial_form %}
+                <div class="field-box">
+                    {{field.errors}}
+                    {% if field.is_checkbox %}
+                        {{ field.field }}{{ field.label_tag }}
+                    {% else %}
+                        {{ field.label_tag }}
+                        {{ field }}
+                    {% endif %}
+                    {% if field.field.field.help_text %}
+                        <p class="help">{{ field.field.field.help_text|safe }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <input type="submit" value="{% trans "save" %}" class="default" name="_send_common_data" />
+        </div>
+    </form>
+{% endif %}
+
+{% if import %}
+    <h2>{% trans "import" %}</h2>
+    {% if import.errors %}
+        <h3>{% trans "errors" %}</h3>
+        {% for error in import.errors %}
+            {{error.0}} {{error.1}}
+        {% endfor %}
+    {% endif %}
+    <h3>{% trans "count" %}</h3>
+    <p>{{import.count}}</p>
+{% endif %}
+
+{% endblock %}
