@@ -16,6 +16,12 @@ def decorate_get_urls(function):
         )
         return export_urls + urls
     return wrapper
+
+def decorate_changelist_view(function):
+    def wrapper(self, request, extra_context={}, **kwargs):
+        extra_context.update({'has_import':True})
+        return function(self, request, extra_context=extra_context, **kwargs)
+    return wrapper
     
 def import_xls_view(self, request):
     if request.method == 'POST' and '_send_file' in request.POST:
@@ -66,9 +72,12 @@ def import_xls_view(self, request):
     return render(request, 'admin/excel_import/import_xls.html', context)
 
 
-def add_import(admin):
+def add_import(admin, add_button=False):
     setattr(admin, 'import_xls_view', import_xls_view)
     setattr(admin, 'get_urls', decorate_get_urls(getattr(admin,'get_urls')))
+    if add_button:
+        setattr(admin, 'changelist_view', decorate_changelist_view(getattr(admin, 'changelist_view')))
+        setattr(admin, 'change_list_template', 'admin/excel_import/changelist_view.html')
     
 def do_import(sheet, model_form, field_assignment, default_values, commit=False):
     errors = []
