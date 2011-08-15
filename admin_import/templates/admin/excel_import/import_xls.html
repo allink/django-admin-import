@@ -52,6 +52,12 @@
 {% if sheet_head %}
     <h2>{% trans "assign columns" %}</h2>
     <form action="." method="post">{% csrf_token %}
+        {% if column_assign_form.non_field_errors %}
+            <p class="errornote">
+            {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+            </p>
+            {{ column_assign_form.form.non_field_errors }}
+        {% endif %}
         <table>
             {% for row in sheet_head %}
                 <tr>
@@ -64,12 +70,6 @@
                     {% endfor %}
                 </tr>
             {% endfor %}
-            {% if column_assign_form.non_field_errors %}
-                <p class="errornote">
-                {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
-                </p>
-                {{ column_assign_form.non_field_errors }}
-            {% endif %}
             <tr>
                 {% for field in column_assign_form %}
                     <td>

@@ -28,13 +28,18 @@ class ColumnAssignForm(forms.Form):
         del kwargs['columns']
         self.field_choices = []
         for name, field in self._modelform.fields.items():
-            self.field_choices.append((name, name))
+            self.field_choices.append((name, field.label))
+        self.field_choices.append((u'',u"don't use"))
         super(ColumnAssignForm, self).__init__(*args, **kwargs)
         for i, column in enumerate(self._columns):
-            self.fields[str(i)] = forms.ChoiceField(choices=self.field_choices)
+            self.fields[str(i)] = forms.ChoiceField(choices=self.field_choices, required=False)
         
     def clean(self):
         for field, value in self.cleaned_data.items():
+            if value == u'':
+                # don't use this field
+                del self.cleaned_data[field]
+                continue
             for field2, value2 in self.cleaned_data.items():
                 if field == field2:
                     continue
@@ -44,8 +49,9 @@ class ColumnAssignForm(forms.Form):
     
     def get_excluded_fields(self):
         # todo: maybee whe should add some specific fields here
-        return self.cleaned_data.values()
-
+        fields = self.cleaned_data.values()
+        return fields
+    
 
  
 def create_partial_form(model_form, excluded_fields):
@@ -54,7 +60,7 @@ def create_partial_form(model_form, excluded_fields):
         exclude = excluded_fields
     def fnc_get_raw_data(self):
         return {name: self._raw_value(name) for name in self.fields.keys()}
-    dry_run = forms.BooleanField(label="dry run", required=False)
+    dry_run = forms.BooleanField(label="dry run", required=False, initial=True)
     Form = type('PartialForm', (model_form,), {'Meta':Meta, 'get_raw_data':fnc_get_raw_data,'dry_run':dry_run})
     return Form
             

@@ -1,6 +1,8 @@
 # xls import
 from django.core.context_processors import csrf
 from django.shortcuts import render
+from django.forms.util import ErrorList, ErrorDict
+
 from admin_import.forms import XlsInputForm, ColumnAssignForm, create_partial_form
 
 import xlrd
@@ -49,7 +51,7 @@ def import_xls_view(self, request):
             partial_form = PartialForm(request.POST)
             if partial_form.is_valid():
                 import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], partial_form.get_raw_data())
-                if partial_form.cleaned_data['dry_run'] and not import_errors:
+                if not partial_form.cleaned_data['dry_run'] and not import_errors:
                     import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], partial_form.get_raw_data(),True)
         else:
             partial_form = PartialForm() if 'PartialForm' in locals() else None
@@ -72,8 +74,17 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
     errors = []
     count = 0
     for i in range(1,sheet.nrows):
-        data = {v:sheet.cell(i,int(k)).value for k, v in field_assignment.items()}
-        data.update(default_values)
+        data = default_values
+        for k, v in field_assignment.items():
+            field = model_form().fields[v]
+            value = sheet.cell(i,int(k)).value.strip()
+            if hasattr(field, 'choices'):
+                try:
+                    value = dict(field.choices).values().index(value)
+                except ValueError:
+                    errors.append((sheet.row(i),ErrorDict(((v,ErrorList(["Could not assign value %s" % value])),))))
+            data[v] = value
+            # handle all choice fields
         form = model_form(data)
         if form.is_valid():
             if commit:
