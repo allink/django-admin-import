@@ -1,0 +1,6 @@
+include AUTHORS
+include LICENSE
+include README.rst
+recursive-include admin_import/templates *.html
+recursive-include admin_import/locale *.po
+recursive-include admin_import/locale *.mo

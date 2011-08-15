@@ -5,4 +5,5 @@
 .DS_Store
 ._*
 /dist
+/django_admin_import.egg-info
 /build
