@@ -59,6 +59,9 @@ def import_xls_view(self, request):
                 import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], partial_form.get_raw_data())
                 if not partial_form.cleaned_data['dry_run'] and not import_errors:
                     import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], partial_form.get_raw_data(),True)
+                context.update({'import':{'errors':import_errors,
+                                          'count': import_count,
+                                          'dry_run': partial_form.cleaned_data['dry_run'],}})
         else:
             partial_form = PartialForm() if 'PartialForm' in locals() else None
         context.update({
@@ -66,7 +69,6 @@ def import_xls_view(self, request):
             'sheet_head':sheet_head,
             'column_assign_form': column_assign_form,
             'partial_form': partial_form,
-            'import':{'errors':import_errors, 'count': import_count}if 'import_errors' in locals() else None,
         })
     context.update(csrf(request))
     return render(request, 'admin/excel_import/import_xls.html', context)
