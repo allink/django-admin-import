@@ -59,7 +59,7 @@ def create_partial_form(model_form, excluded_fields):
     class Meta(model_form.Meta):
         exclude = excluded_fields
     def fnc_get_raw_data(self):
-        return {name: self._raw_value(name) for name in self.fields.keys()}
+        return dict((name, self._raw_value(name)) for name in self.fields.keys())
     dry_run = forms.BooleanField(label="dry run", required=False, initial=True)
     Form = type('PartialForm', (model_form,), {'Meta':Meta, 'get_raw_data':fnc_get_raw_data,'dry_run':dry_run})
     return Form
