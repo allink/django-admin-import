@@ -93,14 +93,31 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
         data = default_values.copy()
         for k, v in field_assignment.items():
             field = model_form().fields[v]
-            value = sheet.cell(i,int(k)).value.strip()
-            if hasattr(field, 'choices'):
-                try:
-                    value = dict(field.choices).values().index(value)
-                except ValueError:
-                    errors.append((sheet.row(i),ErrorDict(((v,ErrorList(["Could not assign value %s" % value])),))))
-            data[v] = value
+            value = sheet.cell(i, int(k)).value
+
+            # Normalize values a little bit -- this is necessary because when
+            # reading from the excel file, we only get a subset of the types
+            # Django itself supports through its forms and models.
+            if isinstance(value, float):
+                if value - int(value) == 0.0:
+                    value = int(value)
+            elif isinstance(value, basestring):
+                value = value.strip()
+
             # handle all choice fields
+            if hasattr(field, 'choices'):
+                choices = dict(field.choices)
+                if value in choices:
+                    pass # Ok.
+                else:
+                    reverse = dict((v, k) for k, v in choices.items())
+                    if value in reverse:
+                        value = reverse[value]
+                    else:
+                        errors.append((sheet.row(i),ErrorDict(((v,ErrorList(["Could not assign value %s" % value])),))))
+
+            data[v] = value
+
         form = model_form(data)
         if form.is_valid():
             if commit:
