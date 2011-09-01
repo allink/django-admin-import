@@ -90,7 +90,7 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
     errors = []
     count = 0
     for i in range(1,sheet.nrows):
-        data = default_values
+        data = default_values.copy()
         for k, v in field_assignment.items():
             field = model_form().fields[v]
             value = sheet.cell(i,int(k)).value.strip()
