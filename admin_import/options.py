@@ -59,11 +59,9 @@ def import_xls_view(self, request):
         if 'PartialForm' in locals() and request.method == 'POST' and '_send_common_data' in request.POST:
             partial_form = PartialForm(request.POST)
             if partial_form.is_valid():
-                raw_data = dict((name, partial_form._raw_value(name)) for name in partial_form.fields)
-
-                import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], raw_data)
+                import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], request.POST)
                 if not partial_form.cleaned_data['dry_run'] and not import_errors:
-                    import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], raw_data, True)
+                    import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], request.POST, True)
                 context.update({'import':{'errors':import_errors,
                                           'count': import_count,
                                           'dry_run': partial_form.cleaned_data['dry_run'],}})
