@@ -3,6 +3,7 @@ from django import forms
 from django.core.context_processors import csrf
 from django.shortcuts import render
 from django.forms.util import ErrorList, ErrorDict
+from django.utils.translation import ugettext_lazy
 
 from admin_import.forms import XlsInputForm, ColumnAssignForm
 
@@ -54,7 +55,8 @@ def import_xls_view(self, request):
             column_assign_form = ColumnAssignForm(modelform=form_instance, columns=columns)
         if 'excel_import_excluded_fields' in request.session:
             PartialForm = self.get_form(request, exclude=request.session['excel_import_excluded_fields'])
-            PartialForm.base_fields['dry_run'] = forms.BooleanField(label='dry run', required=False, initial=True)
+            PartialForm.base_fields['dry_run'] = forms.BooleanField(label=ugettext_lazy('Dry run'),
+                required=False, initial=True)
 
         if 'PartialForm' in locals() and request.method == 'POST' and '_send_common_data' in request.POST:
             partial_form = PartialForm(request.POST)

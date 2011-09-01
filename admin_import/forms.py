@@ -44,7 +44,7 @@ class ColumnAssignForm(forms.Form):
                 if field == field2:
                     continue
                 if value == value2:
-                    raise forms.ValidationError(_('Duplicated Values'))
+                    raise forms.ValidationError(_('Duplicated values'))
         return self.cleaned_data
 
     def get_excluded_fields(self):

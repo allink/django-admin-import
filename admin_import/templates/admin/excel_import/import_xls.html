@@ -22,7 +22,7 @@
 
 <form action="." method="post" enctype="multipart/form-data">{% csrf_token %}
     <fieldset class="module aligned">
-        <h2>1. {% trans "upload file"|capfirst %}</h2>
+        <h2>1. {% trans "Upload file" %}</h2>
         {% if import_form.non_field_errors %}
             <p class="errornote">
             {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
@@ -49,14 +49,14 @@
     </fieldset>
 
     <div class="submit-row">
-        <input type="submit" value="{% trans "upload file" %}" class="default" name="_send_file" />
+        <input type="submit" value="{% trans "Upload file" %}" class="default" name="_send_file" />
     </div>
 </form>
 
 {% if sheet_head %}
     <form action="." method="post">{% csrf_token %}
         <fieldset class="module aligned">
-            <h2>2. {% trans "assign columns"|capfirst %}</h2>
+            <h2>2. {% trans "Assign columns" %}</h2>
             {% if column_assign_form.non_field_errors %}
                 <p class="errornote">
                 {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
@@ -85,7 +85,7 @@
             </table>
         </fieldset>
         <div class="submit-row">
-            <input type="submit" value="{% trans "assign" %}" class="default" name="_send_assignment" />
+            <input type="submit" value="{% trans "Assign" %}" class="default" name="_send_assignment" />
         </div>
     </form>
 {% endif %}
