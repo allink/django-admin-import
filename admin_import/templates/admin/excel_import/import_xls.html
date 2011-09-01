@@ -1,7 +1,11 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "Import" %} {{ opts.verbose_name }} {{ block.super }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+{% block coltype %}colM{% endblock %}
+{% block bodyclass %}change-form{% endblock %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
@@ -12,11 +16,13 @@
 </div>
 {% endblock %}
 
-{% block content %}
-<h1>{% trans "import"|capfirst %}</h1>
-<h2>1. {% trans "upload file"|capfirst %}</h2>
+{% block content_title %}<h1>{% trans "import"|capfirst %}</h1>{% endblock %}
+
+{% block content %}<div id="content-main">
+
 <form action="." method="post" enctype="multipart/form-data">{% csrf_token %}
     <fieldset class="module aligned">
+        <h2>1. {% trans "upload file"|capfirst %}</h2>
         {% if import_form.non_field_errors %}
             <p class="errornote">
             {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
@@ -24,7 +30,7 @@
             {{ import_form.form.non_field_errors }}
         {% endif %}
         {% for field in import_form %}
-            <div>
+            <div class="form-row"><div class="field-box">
                 {% if field.is_checkbox %}
                     {{ field.field }}{{ field.label_tag }}
                 {% else %}
@@ -38,7 +44,7 @@
                 {% if field.field.field.help_text %}
                     <p class="help">{{ field.field.field.help_text|safe }}</p>
                 {% endif %}
-            </div>
+            </div></div>
         {% endfor %}
     </fieldset>
 
@@ -48,9 +54,9 @@
 </form>
 
 {% if sheet_head %}
-    <h2>2. {% trans "assign columns"|capfirst %}</h2>
     <form action="." method="post">{% csrf_token %}
         <fieldset class="module aligned">
+            <h2>2. {% trans "assign columns"|capfirst %}</h2>
             {% if column_assign_form.non_field_errors %}
                 <p class="errornote">
                 {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
@@ -85,12 +91,12 @@
 {% endif %}
 
 {% if partial_form %}
-    <h2>3. {% trans "define default values"|capfirst %}</h2>
     <form action="." method="post">{% csrf_token %}
         <fieldset class="module aligned">
+            <h2>3. {% trans "define default values"|capfirst %}</h2>
             {{ partial_form.non_field_errors }}
             {% for field in partial_form %}
-                <div class="field-box">
+                <div class="form-row"><div class="field-box">
                     {{field.errors}}
                     {% if field.is_checkbox %}
                         {{ field.field }}{{ field.label_tag }}
@@ -101,7 +107,7 @@
                     {% if field.field.field.help_text %}
                         <p class="help">{{ field.field.field.help_text|safe }}</p>
                     {% endif %}
-                </div>
+                </div></div>
             {% endfor %}
         </fieldset>
         <div class="submit-row">
@@ -127,4 +133,4 @@
     {% endif %}
 {% endif %}
 
-{% endblock %}
+</div>{% endblock %}
