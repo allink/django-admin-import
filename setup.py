@@ -6,7 +6,7 @@ import admin_import
 setup(
     name='django-admin-import',
     version = admin_import.__version__,
-    description = 'import tool atachable to allmost every django admin',
+    description = 'Import tool attachable to almost every Django admin',
     long_description=open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
     author = 'Marc Egli',
     author_email = 'egli@allink.ch',
@@ -29,6 +29,5 @@ setup(
     requires=[
         'Django(>=1.3)',
     ],
-    include_package_data=True,    
-    
+    include_package_data=True,
 )

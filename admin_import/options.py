@@ -1,9 +1,11 @@
 # xls import
+from django import forms
 from django.core.context_processors import csrf
 from django.shortcuts import render
 from django.forms.util import ErrorList, ErrorDict
+from django.utils.translation import ugettext_lazy
 
-from admin_import.forms import XlsInputForm, ColumnAssignForm, create_partial_form
+from admin_import.forms import XlsInputForm, ColumnAssignForm
 
 import xlrd
 
@@ -22,7 +24,7 @@ def decorate_changelist_view(function):
         extra_context.update({'has_import':True})
         return function(self, request, extra_context=extra_context, **kwargs)
     return wrapper
-    
+
 def import_xls_view(self, request):
     if request.method == 'POST' and '_send_file' in request.POST:
         # handle file and redirect
@@ -52,13 +54,16 @@ def import_xls_view(self, request):
         else:
             column_assign_form = ColumnAssignForm(modelform=form_instance, columns=columns)
         if 'excel_import_excluded_fields' in request.session:
-            PartialForm = create_partial_form(model_form, request.session['excel_import_excluded_fields'])
+            PartialForm = self.get_form(request, exclude=request.session['excel_import_excluded_fields'])
+            PartialForm.base_fields['dry_run'] = forms.BooleanField(label=ugettext_lazy('Dry run'),
+                required=False, initial=True)
+
         if 'PartialForm' in locals() and request.method == 'POST' and '_send_common_data' in request.POST:
             partial_form = PartialForm(request.POST)
             if partial_form.is_valid():
-                import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], partial_form.get_raw_data())
+                import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], request.POST)
                 if not partial_form.cleaned_data['dry_run'] and not import_errors:
-                    import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], partial_form.get_raw_data(),True)
+                    import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], request.POST, True)
                 context.update({'import':{'errors':import_errors,
                                           'count': import_count,
                                           'dry_run': partial_form.cleaned_data['dry_run'],}})
@@ -80,22 +85,39 @@ def add_import(admin, add_button=False):
     if add_button:
         setattr(admin, 'changelist_view', decorate_changelist_view(getattr(admin, 'changelist_view')))
         setattr(admin, 'change_list_template', 'admin/excel_import/changelist_view.html')
-    
+
 def do_import(sheet, model_form, field_assignment, default_values, commit=False):
     errors = []
     count = 0
     for i in range(1,sheet.nrows):
-        data = default_values
+        data = default_values.copy()
         for k, v in field_assignment.items():
             field = model_form().fields[v]
-            value = sheet.cell(i,int(k)).value.strip()
-            if hasattr(field, 'choices'):
-                try:
-                    value = dict(field.choices).values().index(value)
-                except ValueError:
-                    errors.append((sheet.row(i),ErrorDict(((v,ErrorList(["Could not assign value %s" % value])),))))
-            data[v] = value
+            value = sheet.cell(i, int(k)).value
+
+            # Normalize values a little bit -- this is necessary because when
+            # reading from the excel file, we only get a subset of the types
+            # Django itself supports through its forms and models.
+            if isinstance(value, float):
+                if value - int(value) == 0.0:
+                    value = int(value)
+            elif isinstance(value, basestring):
+                value = value.strip()
+
             # handle all choice fields
+            if hasattr(field, 'choices'):
+                choices = dict(field.choices)
+                if value in choices:
+                    pass # Ok.
+                else:
+                    reverse = dict((v, k) for k, v in choices.items())
+                    if value in reverse:
+                        value = reverse[value]
+                    else:
+                        errors.append((sheet.row(i),ErrorDict(((v,ErrorList(["Could not assign value %s" % value])),))))
+
+            data[v] = value
+
         form = model_form(data)
         if form.is_valid():
             if commit:
