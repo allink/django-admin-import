@@ -6,13 +6,15 @@ from django.utils.translation import ugettext_lazy as _
 IMPORT_FILE_TYPES = ['.xls', ]
 
 class XlsInputForm(forms.Form):
-    input_excel = forms.FileField(required= True, label= u"Upload the Excel file to import to the system.")
+    input_excel = forms.FileField(required= True,
+        label=_("Upload the Excel file to import to the system."))
 
     def clean_input_excel(self):
         input_excel = self.cleaned_data['input_excel']
         extension = os.path.splitext( input_excel.name )[1]
         if not (extension in IMPORT_FILE_TYPES):
-            raise forms.ValidationError( u'%s is not a valid excel file. Please make sure your input file is an excel file (Excel 2007 is NOT supported.' % extension )
+            raise forms.ValidationError(
+                _(u'%s is not a valid Excel file. Please make sure your input file is an Excel file (Excel 2007 is NOT supported.)') % extension )
         else:
             return input_excel
 
