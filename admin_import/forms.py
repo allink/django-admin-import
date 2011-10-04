@@ -13,6 +13,10 @@ class XlsInputForm(forms.Form):
 
     def clean(self):
         data = super(XlsInputForm, self).clean()
+
+        if 'input_excel' not in data:
+            raise forms.ValidationError(_('The Excel file is required to proceed.'))
+
         input_excel = data['input_excel']
         extension = os.path.splitext( input_excel.name )[1]
         if not (extension in IMPORT_FILE_TYPES):
