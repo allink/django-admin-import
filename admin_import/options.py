@@ -100,11 +100,25 @@ def add_import(admin, add_button=False):
 def do_import(sheet, model_form, field_assignment, default_values, commit=False):
     errors = []
     count = 0
-    for i in range(1,sheet.nrows):
+    form_instance = model_form()
+
+    # Prepare choices mappings to handle choice fields
+    forward_choices = {}
+    reverse_choices = {}
+    for k, v in field_assignment.items():
+        field = form_instance.fields[v]
+        if hasattr(field, 'choices'):
+            forward_choices[k] = choice_dict = dict(field.choices)
+            reverse_choices[k] = dict((r[1], r[0]) for r in choice_dict.items())
+
+    for i in range(1, sheet.nrows):
         data = default_values.copy()
+        print 'Processing %s/%s: %s' % (i, sheet.nrows, data)
+        values = sheet.row_values(i)
+
         for k, v in field_assignment.items():
-            field = model_form().fields[v]
-            value = sheet.cell(i, int(k)).value
+            field = form_instance.fields[v]
+            value = values[int(k)]
 
             # Normalize values a little bit -- this is necessary because when
             # reading from the excel file, we only get a subset of the types
@@ -115,17 +129,19 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
             elif isinstance(value, basestring):
                 value = value.strip()
 
-            # handle all choice fields
-            if hasattr(field, 'choices'):
-                choices = dict(field.choices)
-                if value in choices:
+            if k in forward_choices:
+                if value in forward_choices[k]:
                     pass # Ok.
                 else:
-                    reverse = dict((v, k) for k, v in choices.items())
-                    if value in reverse:
-                        value = reverse[value]
+                    if value in reverse_choices[k]:
+                        value = reverse_choices[k][value]
                     else:
-                        errors.append((sheet.row(i),ErrorDict(((v,ErrorList(["Could not assign value %s" % value])),))))
+                        errors.append((
+                            values,
+                            ErrorDict((
+                                (v, ErrorList(["Could not assign value %s" % value])),
+                                ))
+                            ))
 
             data[v] = value
 
