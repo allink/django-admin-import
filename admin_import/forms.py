@@ -1,4 +1,6 @@
+import StringIO
 import os
+import xlrd
 
 from django import forms
 from django.utils.translation import ugettext_lazy as _
@@ -16,6 +18,17 @@ class XlsInputForm(forms.Form):
         if not (extension in IMPORT_FILE_TYPES):
             raise forms.ValidationError(
                 _(u'%s is not a valid Excel file. Please make sure your input file is an Excel file (Excel 2007 is NOT supported.)') % input_excel.name)
+
+        file_data = StringIO.StringIO()
+        for chunk in input_excel.chunks():
+            file_data.write(chunk)
+        data['file_data'] = file_data.getvalue()
+
+        try:
+            xlrd.open_workbook(file_contents=data['file_data'])
+        except xlrd.XLRDError, e:
+            raise forms.ValidationError(_('Unable to open XLS file: %s' % e))
+
         return data
 
 

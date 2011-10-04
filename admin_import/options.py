@@ -1,6 +1,3 @@
-# xls import
-import StringIO
-
 from django import forms
 from django.core.context_processors import csrf
 from django.shortcuts import render
@@ -32,10 +29,7 @@ def import_xls_view(self, request):
         # handle file and redirect
         import_form = XlsInputForm(request.POST, request.FILES)
         if import_form.is_valid():
-            file_data = StringIO.StringIO()
-            for chunk in import_form.cleaned_data['input_excel'].chunks():
-                file_data.write(chunk)
-            request.session['excel_import_sheet'] = file_data.getvalue()
+            request.session['excel_import_sheet'] = import_form.cleaned_data['file_data']
             file_data.close()
 
     if 'import_form' not in locals():
