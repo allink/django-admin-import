@@ -16,6 +16,7 @@ class XlsInputForm(forms.Form):
         if not (extension in IMPORT_FILE_TYPES):
             raise forms.ValidationError(
                 _(u'%s is not a valid Excel file. Please make sure your input file is an Excel file (Excel 2007 is NOT supported.)') % input_excel.name)
+        return data
 
 
 class ColumnAssignForm(forms.Form):
