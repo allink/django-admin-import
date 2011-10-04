@@ -27,6 +27,7 @@ class XlsInputForm(forms.Form):
         for chunk in input_excel.chunks():
             file_data.write(chunk)
         data['file_data'] = file_data.getvalue()
+        file_data.close()
 
         try:
             xlrd.open_workbook(file_contents=data['file_data'])

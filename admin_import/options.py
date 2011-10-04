@@ -30,7 +30,6 @@ def import_xls_view(self, request):
         import_form = XlsInputForm(request.POST, request.FILES)
         if import_form.is_valid():
             request.session['excel_import_sheet'] = import_form.cleaned_data['file_data']
-            file_data.close()
 
     if 'import_form' not in locals():
         import_form = XlsInputForm()
