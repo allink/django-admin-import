@@ -60,6 +60,7 @@ def import_xls_view(self, request):
         if 'excel_import_excluded_fields' in request.session:
             PartialForm = self.get_form(request, exclude=request.session['excel_import_excluded_fields'])
             PartialForm.base_fields['dry_run'] = forms.BooleanField(label=ugettext_lazy('Dry run'),
+                help_text=ugettext_lazy('Uncheck this checkbox if you actually want to save the data in the database!'),
                 required=False, initial=True)
 
         if 'PartialForm' in locals() and request.method == 'POST' and '_send_common_data' in request.POST:
