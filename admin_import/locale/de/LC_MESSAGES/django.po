@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-01 14:01+0200\n"
+"POT-Creation-Date: 2011-10-07 11:38+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,13 +18,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
-#: forms.py:47
+#: forms.py:12
+msgid "Upload the Excel file to import to the system."
+msgstr ""
+
+#: forms.py:18
+msgid "The Excel file is required to proceed."
+msgstr ""
+
+#: forms.py:24
+#, python-format
+msgid ""
+"%s is not a valid Excel file. Please make sure your input file is an Excel "
+"file (Excel 2007 is NOT supported.)"
+msgstr ""
+
+#: forms.py:35
+#, python-format
+msgid "Unable to open XLS file: %s"
+msgstr ""
+
+#: forms.py:68
 msgid "Duplicated values"
 msgstr "Wert existiert zweimal"
 
-#: options.py:58
+#: options.py:62
 msgid "Dry run"
 msgstr "Testlauf"
+
+#: options.py:63
+msgid ""
+"Uncheck this checkbox if you actually want to save the data in the database!"
+msgstr ""
+"Häkchen bei dieser Checkbox entfernen falls die Daten in der Datenbank "
+"gesichert werden sollen."
 
 #: templates/admin/excel_import/import_xls.html:4
 #: templates/admin/excel_import/import_xls.html:15
@@ -40,49 +67,48 @@ msgid "import"
 msgstr "import"
 
 #: templates/admin/excel_import/import_xls.html:25
-#: templates/admin/excel_import/import_xls.html:52
+#: templates/admin/excel_import/import_xls.html:49
 msgid "Upload file"
 msgstr "Datei hochladen"
 
-#: templates/admin/excel_import/import_xls.html:28
-#: templates/admin/excel_import/import_xls.html:62
+#: templates/admin/excel_import/import_xls.html:56
+msgid "Assign columns"
+msgstr "Spalten zuweisen"
+
+#: templates/admin/excel_import/import_xls.html:59
 msgid "Please correct the error below."
 msgid_plural "Please correct the errors below."
 msgstr[0] ""
 msgstr[1] ""
 
-#: templates/admin/excel_import/import_xls.html:59
-msgid "Assign columns"
-msgstr "Spalten zuweisen"
-
-#: templates/admin/excel_import/import_xls.html:88
+#: templates/admin/excel_import/import_xls.html:85
 msgid "Assign"
 msgstr "Zuweisen"
 
-#: templates/admin/excel_import/import_xls.html:96
+#: templates/admin/excel_import/import_xls.html:93
 msgid "define default values"
 msgstr "Standardwerte definieren"
 
-#: templates/admin/excel_import/import_xls.html:114
+#: templates/admin/excel_import/import_xls.html:111
 msgid "save"
 msgstr "Sichern"
 
-#: templates/admin/excel_import/import_xls.html:120
+#: templates/admin/excel_import/import_xls.html:117
 msgid "result"
 msgstr "Resultat"
 
-#: templates/admin/excel_import/import_xls.html:121
+#: templates/admin/excel_import/import_xls.html:118
 msgid "errors"
 msgstr "Fehler"
 
-#: templates/admin/excel_import/import_xls.html:127
+#: templates/admin/excel_import/import_xls.html:124
 msgid "There were no errors"
 msgstr ""
 
-#: templates/admin/excel_import/import_xls.html:128
+#: templates/admin/excel_import/import_xls.html:125
 msgid "number of imports"
 msgstr "Anzahl importierte Einträge"
 
-#: templates/admin/excel_import/import_xls.html:131
+#: templates/admin/excel_import/import_xls.html:128
 msgid "this was a dry run"
 msgstr "Dies war ein Testlauf"

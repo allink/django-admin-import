@@ -24,10 +24,7 @@
     <fieldset class="module aligned">
         <h2>1. {% trans "Upload file" %}</h2>
         {% if import_form.non_field_errors %}
-            <p class="errornote">
-            {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
-            </p>
-            {{ import_form.form.non_field_errors }}
+            {{ import_form.non_field_errors }}
         {% endif %}
         {% for field in import_form %}
             <div class="form-row"><div class="field-box">
@@ -104,8 +101,8 @@
                         {{ field.label_tag }}
                         {{ field }}
                     {% endif %}
-                    {% if field.field.field.help_text %}
-                        <p class="help">{{ field.field.field.help_text|safe }}</p>
+                    {% if field.field.help_text %}
+                        <p class="help">{{ field.field.help_text|safe }}</p>
                     {% endif %}
                 </div></div>
             {% endfor %}
