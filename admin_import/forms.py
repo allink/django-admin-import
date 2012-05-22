@@ -33,7 +33,7 @@ class ColumnAssignForm(forms.Form):
         super(ColumnAssignForm, self).__init__(*args, **kwargs)
         for i, column in enumerate(self._columns):
             self.fields[str(i)] = forms.ChoiceField(choices=self.field_choices, required=False)
-        
+
     def clean(self):
         for field, value in self.cleaned_data.items():
             if value == u'':
@@ -44,23 +44,10 @@ class ColumnAssignForm(forms.Form):
                 if field == field2:
                     continue
                 if value == value2:
-                    raise forms.ValidationError(_('Duplicated Values'))
+                    raise forms.ValidationError(_('Duplicated values'))
         return self.cleaned_data
-    
+
     def get_excluded_fields(self):
         # todo: maybee whe should add some specific fields here
         fields = self.cleaned_data.values()
         return fields
-    
-
- 
-def create_partial_form(model_form, excluded_fields):
-    # create model form without already assigned fields
-    class Meta(model_form.Meta):
-        exclude = excluded_fields
-    def fnc_get_raw_data(self):
-        return dict((name, self._raw_value(name)) for name in self.fields.keys())
-    dry_run = forms.BooleanField(label="dry run", required=False, initial=True)
-    Form = type('PartialForm', (model_form,), {'Meta':Meta, 'get_raw_data':fnc_get_raw_data,'dry_run':dry_run})
-    return Form
-            
