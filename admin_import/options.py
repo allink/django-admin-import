@@ -1,4 +1,3 @@
-# xls import
 from django import forms
 from django.core.context_processors import csrf
 from django.shortcuts import render
@@ -30,10 +29,15 @@ def import_xls_view(self, request):
         # handle file and redirect
         import_form = XlsInputForm(request.POST, request.FILES)
         if import_form.is_valid():
-            request.session['excel_import_sheet'] = xlrd.open_workbook(file_contents=import_form.cleaned_data['input_excel'].read()).sheet_by_index(0)
+            request.session['excel_import_sheet'] = import_form.cleaned_data['file_data']
+
     if 'import_form' not in locals():
         import_form = XlsInputForm()
-    sheet = request.session.get('excel_import_sheet',None)
+
+    sheet = request.session.get('excel_import_sheet', None)
+    if sheet:
+        sheet = xlrd.open_workbook(file_contents=sheet).sheet_by_index(0)
+
     context = {
         'import_form':import_form,
         'app_label': self.model._meta.app_label,
@@ -56,6 +60,7 @@ def import_xls_view(self, request):
         if 'excel_import_excluded_fields' in request.session:
             PartialForm = self.get_form(request, exclude=request.session['excel_import_excluded_fields'])
             PartialForm.base_fields['dry_run'] = forms.BooleanField(label=ugettext_lazy('Dry run'),
+                help_text=ugettext_lazy('Uncheck this checkbox if you actually want to save the data in the database!'),
                 required=False, initial=True)
 
         if 'PartialForm' in locals() and request.method == 'POST' and '_send_common_data' in request.POST:
@@ -89,11 +94,25 @@ def add_import(admin, add_button=False):
 def do_import(sheet, model_form, field_assignment, default_values, commit=False):
     errors = []
     count = 0
-    for i in range(1,sheet.nrows):
+    form_instance = model_form()
+
+    # Prepare choices mappings to handle choice fields
+    forward_choices = {}
+    reverse_choices = {}
+    for k, v in field_assignment.items():
+        field = form_instance.fields[v]
+        if hasattr(field, 'choices'):
+            forward_choices[k] = choice_dict = dict(field.choices)
+            reverse_choices[k] = dict((r[1], r[0]) for r in choice_dict.items())
+
+    for i in range(1, sheet.nrows):
         data = default_values.copy()
+        print 'Processing %s/%s: %s' % (i, sheet.nrows, data)
+        values = sheet.row_values(i)
+
         for k, v in field_assignment.items():
-            field = model_form().fields[v]
-            value = sheet.cell(i, int(k)).value
+            field = form_instance.fields[v]
+            value = values[int(k)]
 
             # Normalize values a little bit -- this is necessary because when
             # reading from the excel file, we only get a subset of the types
@@ -104,17 +123,19 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
             elif isinstance(value, basestring):
                 value = value.strip()
 
-            # handle all choice fields
-            if hasattr(field, 'choices'):
-                choices = dict(field.choices)
-                if value in choices:
+            if k in forward_choices:
+                if value in forward_choices[k]:
                     pass # Ok.
                 else:
-                    reverse = dict((v, k) for k, v in choices.items())
-                    if value in reverse:
-                        value = reverse[value]
+                    if value in reverse_choices[k]:
+                        value = reverse_choices[k][value]
                     else:
-                        errors.append((sheet.row(i),ErrorDict(((v,ErrorList(["Could not assign value %s" % value])),))))
+                        errors.append((
+                            values,
+                            ErrorDict((
+                                (v, ErrorList(["Could not assign value %s" % value])),
+                                ))
+                            ))
 
             data[v] = value
 
