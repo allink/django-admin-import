@@ -1,3 +1,6 @@
+import logging
+import xlrd
+
 from django import forms
 from django.core.context_processors import csrf
 from django.shortcuts import render
@@ -6,7 +9,7 @@ from django.utils.translation import ugettext_lazy
 
 from admin_import.forms import XlsInputForm, ColumnAssignForm
 
-import xlrd
+logger = logging.getLogger(__name__)
 
 
 def decorate_get_urls(function):
@@ -117,7 +120,7 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
 
     for i in range(1, sheet.nrows):
         data = default_values.copy()
-        print 'Processing %s/%s: %s' % (i, sheet.nrows, data)
+        logger.info('Processing %s/%s: %s' % (i, sheet.nrows, data))
         values = sheet.row_values(i)
 
         for k, v in field_assignment.items():
