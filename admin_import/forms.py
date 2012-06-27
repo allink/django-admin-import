@@ -7,6 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 
 IMPORT_FILE_TYPES = ['.xls', ]
 
+
 class XlsInputForm(forms.Form):
     input_excel = forms.FileField(required=True,
         label=_("Upload the Excel file to import to the system."))
@@ -18,7 +19,7 @@ class XlsInputForm(forms.Form):
             raise forms.ValidationError(_('The Excel file is required to proceed.'))
 
         input_excel = data['input_excel']
-        extension = os.path.splitext( input_excel.name )[1]
+        extension = os.path.splitext(input_excel.name)[1]
         if not (extension in IMPORT_FILE_TYPES):
             raise forms.ValidationError(
                 _(u'%s is not a valid Excel file. Please make sure your input file is an Excel file (Excel 2007 is NOT supported.)') % input_excel.name)
@@ -50,7 +51,7 @@ class ColumnAssignForm(forms.Form):
         self.field_choices = []
         for name, field in self._modelform.fields.items():
             self.field_choices.append((name, field.label))
-        self.field_choices.append((u'',u"don't use"))
+        self.field_choices.append((u'', u"don't use"))
         super(ColumnAssignForm, self).__init__(*args, **kwargs)
         for i, column in enumerate(self._columns):
             self.fields[str(i)] = forms.ChoiceField(choices=self.field_choices, required=False)
