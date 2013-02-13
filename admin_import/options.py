@@ -1,3 +1,6 @@
+import logging
+import xlrd
+
 from django import forms
 from django.core.context_processors import csrf
 from django.shortcuts import render
@@ -6,7 +9,8 @@ from django.utils.translation import ugettext_lazy
 
 from admin_import.forms import XlsInputForm, ColumnAssignForm
 
-import xlrd
+logger = logging.getLogger(__name__)
+
 
 def decorate_get_urls(function):
     def wrapper(self):
@@ -18,11 +22,13 @@ def decorate_get_urls(function):
         return export_urls + urls
     return wrapper
 
+
 def decorate_changelist_view(function):
     def wrapper(self, request, extra_context={}, **kwargs):
-        extra_context.update({'has_import':True})
+        extra_context.update({'has_import': True})
         return function(self, request, extra_context=extra_context, **kwargs)
     return wrapper
+
 
 def import_xls_view(self, request):
     if request.method == 'POST' and '_send_file' in request.POST:
@@ -39,13 +45,13 @@ def import_xls_view(self, request):
         sheet = xlrd.open_workbook(file_contents=sheet).sheet_by_index(0)
 
     context = {
-        'import_form':import_form,
+        'import_form': import_form,
         'app_label': self.model._meta.app_label,
         'opts': self.model._meta,
     }
     if sheet:
         sheet_head = (sheet.row(i) for i in range(min(3, sheet.nrows)))
-        model_form = self.get_form(request)
+        model_form = self.get_admin_import_model_form(request)
         form_instance = model_form()
         columns = (field.value for field in sheet.row(0))
         if request.method == 'POST' and '_send_assignment' in request.POST:
@@ -58,7 +64,7 @@ def import_xls_view(self, request):
         else:
             column_assign_form = ColumnAssignForm(modelform=form_instance, columns=columns)
         if 'excel_import_excluded_fields' in request.session:
-            PartialForm = self.get_form(request, exclude=request.session['excel_import_excluded_fields'])
+            PartialForm = self.get_admin_import_model_form(request, exclude=request.session['excel_import_excluded_fields'])
             PartialForm.base_fields['dry_run'] = forms.BooleanField(label=ugettext_lazy('Dry run'),
                 help_text=ugettext_lazy('Uncheck this checkbox if you actually want to save the data in the database!'),
                 required=False, initial=True)
@@ -69,14 +75,14 @@ def import_xls_view(self, request):
                 import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], request.POST)
                 if not partial_form.cleaned_data['dry_run'] and not import_errors:
                     import_errors, import_count = do_import(sheet, model_form, request.session['excel_import_assignment'], request.POST, True)
-                context.update({'import':{'errors':import_errors,
+                context.update({'import': {'errors': import_errors,
                                           'count': import_count,
-                                          'dry_run': partial_form.cleaned_data['dry_run'],}})
+                                          'dry_run': partial_form.cleaned_data['dry_run']}})
         else:
             partial_form = PartialForm() if 'PartialForm' in locals() else None
         context.update({
             'sheet': sheet,
-            'sheet_head':sheet_head,
+            'sheet_head': sheet_head,
             'column_assign_form': column_assign_form,
             'partial_form': partial_form,
         })
@@ -84,12 +90,19 @@ def import_xls_view(self, request):
     return render(request, 'admin/excel_import/import_xls.html', context)
 
 
+def get_admin_import_model_form(self, request, **kwargs):
+    return self.get_form(request, **kwargs)
+
+
 def add_import(admin, add_button=False):
     setattr(admin, 'import_xls_view', import_xls_view)
-    setattr(admin, 'get_urls', decorate_get_urls(getattr(admin,'get_urls')))
+    setattr(admin, 'get_urls', decorate_get_urls(getattr(admin, 'get_urls')))
+    if not hasattr(admin, 'get_admin_import_model_form'):
+        setattr(admin, 'get_admin_import_model_form', get_admin_import_model_form)
     if add_button:
         setattr(admin, 'changelist_view', decorate_changelist_view(getattr(admin, 'changelist_view')))
         setattr(admin, 'change_list_template', 'admin/excel_import/changelist_view.html')
+
 
 def do_import(sheet, model_form, field_assignment, default_values, commit=False):
     errors = []
@@ -107,7 +120,7 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
 
     for i in range(1, sheet.nrows):
         data = default_values.copy()
-        print 'Processing %s/%s: %s' % (i, sheet.nrows, data)
+        logger.info('Processing %s/%s: %s' % (i, sheet.nrows, data))
         values = sheet.row_values(i)
 
         for k, v in field_assignment.items():
@@ -125,7 +138,7 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
 
             if k in forward_choices:
                 if value in forward_choices[k]:
-                    pass # Ok.
+                    pass  # Ok.
                 else:
                     if value in reverse_choices[k]:
                         value = reverse_choices[k][value]
@@ -143,7 +156,7 @@ def do_import(sheet, model_form, field_assignment, default_values, commit=False)
         if form.is_valid():
             if commit:
                 form.save()
-                count +=1
+                count += 1
         else:
             errors.append((sheet.row(i), form.errors))
     return errors, count

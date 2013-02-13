@@ -4,7 +4,7 @@ Admin Import
 Installation
 ------------
 
-**Notice**: This application is still under heavy development and everything
+**Notice**: This application is still under development and everything
 is subject to change.
 
 1. Add ``'admin_import'`` to ``INSTALLED_APPS`` in your settings file.
@@ -19,4 +19,19 @@ is subject to change.
         add_import(InviteeAdmin)
 
 3. Add a button in your admin by overriding the ``change_list.html`` template
-   for your specific model.
+   for your specific model or use ``add_import(InviteeAdmin, add_button=True)``
+
+4. If you need an other modelform than used in the admin you can override
+   the ``get_admin_import_model_form` function. But it should be capable of
+   excluding some files.
+
+
+Change Notes
+------------
+
+0.3.0
+~~~~~
+
+- add a method to specify a custom form to use during the import
+- cleaned up some code
+- replace print with logging
