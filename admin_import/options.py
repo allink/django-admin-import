@@ -15,7 +15,10 @@ logger = logging.getLogger(__name__)
 def decorate_get_urls(function):
     def wrapper(self):
         urls = function(self)
-        from django.conf.urls.defaults import patterns
+        try:
+            from django.conf.urls import url, patterns
+        except ImportError:
+            from django.conf.urls.defaults import url, patterns
         export_urls = patterns('',
             (r'^import/$', self.admin_site.admin_view(self.import_xls_view))
         )
